@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Job;
 use App\Shift;
 use App\Application;
+use App\User;
 use Illuminate\Http\Request;
 
 class ApplicationController extends Controller
@@ -79,4 +80,50 @@ class ApplicationController extends Controller
         }
     }
 
+    public function accept(Request $request){
+        // Get logged on user
+        $userId = $request->user()->{config('db.fields.id')};
+        $userGroupId = $request->user()->{config('db.fields.group_id')};
+
+        // If logged on users group is worker
+        if($userGroupId == config('db.values.groups.worker.id'))
+        {
+            // Return error - do not have access
+            return $this->decline_access();
+        }
+        else{
+           return $this->admin($request, config('db.values.statuses.approved.id'));
+        }
+    }
+
+    public function admin($request, $action)
+    {
+        // validates if shift exists
+        $request->validate([
+            config('db.fields.id') => ['required', 'exists:'.config('db.tables.applications').','.config('db.fields.id')],
+        ]);
+
+        // gets the application id
+        $id = $request->{config('db.fields.id')};
+
+        // gets the application by id where status is pending
+        $application = Application::where(config('db.fields.id'), $id)->where(config('db.fields.status_id'), config('db.values.statuses.pending.id'))->get()[0];
+
+        // worker id
+        $workerId = $application->{config('db.fields.worker_id')};
+
+        // switch to see if to approve or reject the application
+        switch ($action)
+        {
+            case config('db.values.statuses.approved.id'):
+                $worker = User::find($workerId);
+                $worker->{config('db.fields.shift_id')} = $application->{config('db.fields.shift_id')};
+                $worker->save();
+
+                Application::where(config('db.fields.worker_id'), $workerId)->delete();
+
+                return User::with(['group','shift'])->where(config('db.fields.id'), $workerId)->get();
+                break;
+        }
+    }
 }

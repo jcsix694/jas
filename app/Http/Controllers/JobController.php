@@ -44,4 +44,10 @@ class JobController extends Controller
         ]);
     }
 
+    public function get(Request $request, $id = null){
+        // if worker
+            // if no shift then redirect
+            // else get job from shift id
+        // else
+    }
 }
