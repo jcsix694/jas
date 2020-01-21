@@ -59,10 +59,10 @@ class UserController extends Controller
     public function create_admin(Request $request)
     {
         // Get logged on user from token
-        $user = $request->user();
+        $groupId = $request->user()->{config('db.fields.group_id')};
 
         // If logged on users group is a worker
-        if($user->{config('db.fields.group_id')} == config('db.values.groups.worker.id'))
+        if($groupId == config('db.values.groups.worker.id'))
         {
             // Return error - do not have access
             return $this->decline_access();
@@ -142,7 +142,6 @@ class UserController extends Controller
 
         switch ($groupId){
             case config('db.values.groups.admin.id'):
-
                 break;
             case config('db.values.groups.worker.id'):
                 array_push($fields, 'shift');
@@ -159,7 +158,18 @@ class UserController extends Controller
 
         if(sizeof($results) == 0)
         {
-            return response()->json(config('messages.results.error.message'), config('messages.results.error.status'));
+            return $this->no_results();
+        }
+
+        // if searching for workers then loop through each worker and get the job if they have a shift
+        if($groupId == config('db.values.groups.worker.id')){
+            foreach ($results as $result)
+            {
+                if(!is_null($result->shift))
+                {
+                    $result->shift->job;
+                }
+            }
         }
 
         return $results;

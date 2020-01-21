@@ -32,7 +32,7 @@ return [
     'exist' => [
         'error' => [
             'status' => 400,
-            'message' => ' does not exist',
+            'message' => 'Does not exist',
         ],
     ],
     'results' => [

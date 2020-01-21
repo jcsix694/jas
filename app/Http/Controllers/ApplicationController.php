@@ -82,7 +82,6 @@ class ApplicationController extends Controller
 
     public function accept(Request $request){
         // Get logged on user
-        $userId = $request->user()->{config('db.fields.id')};
         $userGroupId = $request->user()->{config('db.fields.group_id')};
 
         // If logged on users group is worker

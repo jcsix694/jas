@@ -45,9 +45,34 @@ class JobController extends Controller
     }
 
     public function get(Request $request, $id = null){
-        // if worker
-            // if no shift then redirect
-            // else get job from shift id
-        // else
+        // Get logged on user
+        $userGroupId = $request->user()->{config('db.fields.group_id')};
+        $userShiftId = $request->user()->{config('db.fields.shift_id')};
+
+        // If logged on users group is a worker
+        if($userGroupId == config('db.values.groups.worker.id'))
+        {
+            if(is_null($userShiftId)) {
+                // Return error - do not have access
+                return $this->decline_access();
+            }
+            else
+            {
+                // return workers job here
+            }
+        }
+        else {
+            if (is_null($id)) {
+                return Job::all();
+            } else {
+                $job = Job::where(config('db.fields.id'), $id)->get();
+
+                if (is_null($job)) {
+                    return $this->no_results();
+                }
+
+                return $job;
+            }
+        }
     }
 }

@@ -36,10 +36,10 @@ class ShiftController extends Controller
                 config('db.fields.job_id') => ['required', 'exists:'.config('db.tables.jobs').','.config('db.fields.id')],
             ]);
 
-            $requestJobId = $request->{config('db.fields.job_id')};
+            $jobId = $request->{config('db.fields.job_id')};
 
-            $jobNoShifts = Job::where(config('db.fields.id'), $requestJobId)->get()[0]->no_shifts;
-            $shiftsCount = Shift::where(config('db.fields.job_id'), $requestJobId)->count();
+            $jobNoShifts = Job::where(config('db.fields.id'), $jobId)->get()[0]->no_shifts;
+            $shiftsCount = Shift::where(config('db.fields.job_id'), $jobId)->count();
 
             if($shiftsCount >= $jobNoShifts)
             {
@@ -58,12 +58,33 @@ class ShiftController extends Controller
                 config('db.fields.start') => $request->{config('db.fields.start')},
                 config('db.fields.end') => $request->{config('db.fields.end')},
                 config('db.fields.pay_per_hour') => $request->{config('db.fields.pay_per_hour')},
-                config('db.fields.job_id') => $requestJobId,
+                config('db.fields.job_id') => $jobId,
             ])->load(config('db.tables.job'));
         }
     }
 
-    public function get(){
+    public function get(Request $request, $id = null){
+        // Get logged on user
+        $userGroupId = $request->user()->{config('db.fields.group_id')};
 
+        // If logged on users group is a worker
+        if($userGroupId == config('db.values.groups.worker.id'))
+        {
+            // Return error - do not have access
+            return $this->decline_access();
+        }
+        else {
+            if (is_null($id)) {
+                return Shift::all();
+            } else {
+                $shift = Shift::with(['job'])->where(config('db.fields.id'), $id)->get();
+
+                if (is_null($shift)) {
+                    return $this->no_results();
+                }
+
+                return $shift;
+            }
+        }
     }
 }

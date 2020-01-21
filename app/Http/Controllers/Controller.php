@@ -25,4 +25,9 @@ class Controller extends BaseController
     {
         return response()->json(config('messages.applied.error.message'), config('messages.applied.error.status'));
     }
+
+    public function no_results()
+    {
+        response()->json(config('messages.results.error.message'), config('messages.results.error.status'));
+    }
 }

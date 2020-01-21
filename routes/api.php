@@ -30,6 +30,7 @@ Route::middleware('auth:api')->get('/job/{id}', 'JobController@get');
 
 Route::middleware('auth:api')->post('/shift', 'ShiftController@create');
 Route::middleware('auth:api')->get('/shift', 'ShiftController@get');
+Route::middleware('auth:api')->get('/shift/{id}', 'ShiftController@get');
 
 Route::middleware('auth:api')->post('/application', 'ApplicationController@create');
 Route::middleware('auth:api')->post('/application/accept', 'ApplicationController@accept');
