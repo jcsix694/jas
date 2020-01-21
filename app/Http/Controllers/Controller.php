@@ -15,4 +15,14 @@ class Controller extends BaseController
     {
         return response()->json(config('messages.access.error.message'), config('messages.access.error.status'));
     }
+
+    public function decline_application()
+    {
+        return response()->json(config('messages.application.error.message'), config('messages.application.error.status'));
+    }
+
+    public function already_applied_application()
+    {
+        return response()->json(config('messages.applied.error.message'), config('messages.applied.error.status'));
+    }
 }

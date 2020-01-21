@@ -15,7 +15,7 @@ class Jobs extends Migration
     {
         Schema::create(config('db.tables.jobs'), function (Blueprint $table) {
             $table->bigIncrements(config('db.fields.id'));
-            $table->string(config('db.fields.name'), '100');
+            $table->string(config('db.fields.name'), '100')->unique();
             $table->longText(config('db.fields.description'));
             $table->integer(config('db.fields.no_shifts'));
             $table->timestamps();

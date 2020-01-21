@@ -10,11 +10,12 @@ class JobController extends Controller
 {
     public function create(Request $request)
     {
-        // Get logged on user from token
-        $user = $request->user();
+        // Get logged on user
+        $userId = $request->user()->{config('db.fields.id')};
+        $userGroupId = $request->user()->{config('db.fields.group_id')};
 
         // If logged on users group is a worker
-        if($user->{config('db.fields.group_id')} == config('db.values.groups.worker.id'))
+        if($userGroupId == config('db.values.groups.worker.id'))
         {
             // Return error - do not have access
             return $this->decline_access();
@@ -28,7 +29,7 @@ class JobController extends Controller
                 config('db.fields.name') => $request->{config('db.fields.name')},
                 config('db.fields.description') => $request->{config('db.fields.description')},
                 config('db.fields.no_shifts') => $request->{config('db.fields.no_shifts')},
-                config('db.fields.admin_id') => $user->{config('db.fields.id')},
+                config('db.fields.admin_id') => $userId,
             ])->load(config('db.tables.admin'));
         }
     }

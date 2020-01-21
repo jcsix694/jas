@@ -11,10 +11,10 @@ class ShiftController extends Controller
     public function create(Request $request)
     {
         // Get logged on user from token
-        $user = $request->user();
+        $userGroupId = $request->user()->{config('db.fields.group_id')};
 
         // If logged on users group is a worker
-        if($user->{config('db.fields.group_id')} == config('db.values.groups.worker.id'))
+        if($userGroupId == config('db.values.groups.worker.id'))
         {
             // Return error - do not have access
             return $this->decline_access();
@@ -36,15 +36,17 @@ class ShiftController extends Controller
                 config('db.fields.job_id') => ['required', 'exists:'.config('db.tables.jobs').','.config('db.fields.id')],
             ]);
 
-            $job = Job::query()->where(config('db.fields.id'), $request->{config('db.fields.job_id')})->get()[0]->no_shifts;
-            $shifts = Shift::query()->where(config('db.fields.job_id'), $request->{config('db.fields.job_id')})->get();
+            $requestJobId = $request->{config('db.fields.job_id')};
 
-            if(sizeof($shifts) >= $job)
+            $jobNoShifts = Job::where(config('db.fields.id'), $requestJobId)->get()[0]->no_shifts;
+            $shiftsCount = Shift::where(config('db.fields.job_id'), $requestJobId)->count();
+
+            if($shiftsCount >= $jobNoShifts)
             {
                 return response()->json(config('messages.max_shifts.error.message'), config('messages.max_shifts.error.status'));
             }
 
-            // returns created job
+            // returns created shift
             return Shift::create([
                 config('db.fields.monday') => $request->{config('db.fields.monday')},
                 config('db.fields.tuesday') => $request->{config('db.fields.tuesday')},
@@ -56,8 +58,12 @@ class ShiftController extends Controller
                 config('db.fields.start') => $request->{config('db.fields.start')},
                 config('db.fields.end') => $request->{config('db.fields.end')},
                 config('db.fields.pay_per_hour') => $request->{config('db.fields.pay_per_hour')},
-                config('db.fields.job_id') => $request->{config('db.fields.job_id')},
+                config('db.fields.job_id') => $requestJobId,
             ])->load(config('db.tables.job'));
         }
+    }
+
+    public function get(){
+
     }
 }

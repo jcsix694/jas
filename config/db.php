@@ -44,6 +44,7 @@ return [
         'owner_id'=>'owner_id',
         'no_shifts' => 'no_shifts',
         'list' => 'list',
+        'workers' => 'workers',
     ],
     'values' => [
         'groups' => [

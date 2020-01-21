@@ -26,7 +26,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token', 'email_verified_at', 'group_id', 'created_at', 'updated_at'
+        'password', 'remember_token', 'email_verified_at', 'group_id', 'created_at', 'updated_at', 'shift_id', 'laravel_through_key'
     ];
 
     /**
@@ -37,6 +37,10 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function shift(){
+        return $this->belongsTo('App\Shift');
+    }
 
     public function group()
     {

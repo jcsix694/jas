@@ -11,11 +11,16 @@ class Shift extends Model
     ];
 
     protected $hidden = [
-        'job_id', 'created_at', 'updated_at'
+        'job_id', 'worker_id', 'created_at', 'updated_at'
     ];
 
     public function job()
     {
         return $this->belongsTo('App\Job');
+    }
+
+    public function worker()
+    {
+        return $this->hasOne('App\User');
     }
 }

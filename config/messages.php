@@ -41,4 +41,16 @@ return [
             'message' => 'No results',
         ],
     ],
+    'application' => [
+        'error' => [
+            'status' => 400,
+            'message' => 'You already have a shift'
+        ]
+    ],
+    'applied' => [
+        'error' => [
+            'status' => 400,
+            'message' => 'You already applied to this shift'
+        ]
+    ]
 ];

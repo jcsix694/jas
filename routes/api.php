@@ -13,14 +13,20 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::post('/login', 'UserController@login');
+Route::post('/login', 'UserController@get_token');
 
 Route::post('/register', 'UserController@create_worker');
 Route::middleware('auth:api')->post('/user','UserController@create_admin');
 
-Route::middleware('auth:api')->get('/user','UserController@get');
-Route::middleware('auth:api')->get('/user/{id}', 'UserController@get');
+Route::middleware('auth:api')->get('/user', 'UserController@get_user');
+Route::middleware('auth:api')->get('/worker/', 'UserController@get_worker');
+Route::middleware('auth:api')->get('/worker/{id}', 'UserController@get_worker');
+Route::middleware('auth:api')->get('/admin', 'UserController@get_admin');
+Route::middleware('auth:api')->get('/admin/{id}', 'UserController@get_admin');
 
 Route::middleware('auth:api')->post('/job', 'JobController@create');
 
 Route::middleware('auth:api')->post('/shift', 'ShiftController@create');
+Route::middleware('auth:api')->get('/shift', 'ShiftController@get');
+
+Route::middleware('auth:api')->post('/application', 'ApplicationController@create');

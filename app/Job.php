@@ -14,8 +14,18 @@ class Job extends Model
         'admin_id', 'created_at', 'updated_at'
     ];
 
+    public function shifts()
+    {
+        return $this->hasMany('App\Shift');
+    }
+
     public function admin()
     {
         return $this->belongsTo('App\User');
+    }
+
+    public function workers()
+    {
+        return $this->hasManyThrough('App\User', 'App\Shift', 'job_id', 'shift_id', 'id', 'id');
     }
 }

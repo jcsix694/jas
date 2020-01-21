@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public function login(Request $request){
+    public function get_token(Request $request){
         $client = new \GuzzleHttp\Client;
 
         // if data try below to login
@@ -53,7 +53,7 @@ class UserController extends Controller
     public function create_worker(Request $request)
     {
         // returns created worker
-        return $this->post($request, config('db.values.groups.worker.id'));
+        return $this->create($request, config('db.values.groups.worker.id'));
     }
 
     public function create_admin(Request $request)
@@ -70,8 +70,20 @@ class UserController extends Controller
         else
         {
             // return created admin
-            return $this->post($request, config('db.values.groups.admin.id'));
+            return $this->create($request, config('db.values.groups.admin.id'));
         }
+    }
+
+    public function create($request, $groupId){
+        $this->validate_user($request);
+
+        // returns created user
+        return User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'group_id' => $groupId,
+        ])->load('group');
     }
 
     public function validate_user($request)
@@ -84,54 +96,72 @@ class UserController extends Controller
         ]);
     }
 
-    public function post($request, $groupId){
-        $this->validate_user($request);
+    public function get_user(Request $request)
+    {
+        $id = $request->user()->{config('db.fields.id')};
+        $groupId = $request->user()->{config('db.fields.group_id')};
 
-        // returns created user
-        return User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'group_id' => $groupId,
-        ])->load('group');
+        // return logged on user
+        return $this->get($id, $groupId);
     }
 
-    public function get(Request $request, $filterId = null)
-    {
-        // Get logged on user from token
-        $user = $request->user();
+    public function get_admin(Request $request, $id = null){
+        $groupId = $request->user()->{config('db.fields.group_id')};
 
         // If logged on users group is a worker
-        if($user->{config('db.fields.group_id')} == config('db.values.groups.worker.id'))
+        if($groupId == config('db.values.groups.worker.id'))
         {
-            // Set the variable id as that users id
-            $filterId = $user->{config('db.fields.id')};
+            // decline access
+            return $this->decline_access();
         }
-
-        if(is_null($filterId))
+        else
         {
-            $results = User::all();
-
-            if(sizeof($results) == 0){
-                return response()->json(config('messages.results.error.message'), config('messages.results.error.status'));
-            }
+            // get admin by id
+            return $this->get($id, config('db.values.groups.admin.id'));
         }
-        else {
-            $results = User::query()->where(config('db.fields.id'), $filterId)->get();
+    }
 
-            // if no results after searching for user with specified id then return error
-            if(sizeof($results) == 0){
-                return response()->json($filterId.config('messages.exist.error.message'), config('messages.exist.error.status'));
-            }
-        }
+    public function get_worker(Request $request, $id = null){
+        $groupId = $request->user()->{config('db.fields.group_id')};
 
-        // foreach result
-        foreach ($results as $result)
+        // If logged on users group is a worker
+        if($groupId == config('db.values.groups.worker.id'))
         {
-           $result->group->id;
+            // decline access
+            return $this->decline_access();
+        }
+        else
+        {
+            // get worker by id
+            return $this->get($id, config('db.values.groups.worker.id'));
+        }
+    }
+
+    public function get($id, $groupId){
+        $fields = ['group'];
+
+        switch ($groupId){
+            case config('db.values.groups.admin.id'):
+
+                break;
+            case config('db.values.groups.worker.id'):
+                array_push($fields, 'shift');
+                break;
         }
 
-        // return results
+        $results = User::with($fields)->where(config('db.fields.group_id'), $groupId);
+
+        if(!is_null($id)){
+            $results = $results->where(config('db.fields.id'), $id);
+        }
+
+        $results = $results->get();
+
+        if(sizeof($results) == 0)
+        {
+            return response()->json(config('messages.results.error.message'), config('messages.results.error.status'));
+        }
+
         return $results;
     }
 }

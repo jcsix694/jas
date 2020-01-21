@@ -29,6 +29,10 @@ class Shifts extends Migration
             $table->bigInteger(config('db.fields.job_id'))->unsigned();
             $table->foreign(config('db.fields.job_id'))->references(config('db.fields.id'))->on(config('db.tables.jobs'));
         });
+
+        Schema::table(config('db.tables.users'), function (Blueprint $table) {
+            $table->foreign(config('db.fields.shift_id'))->references(config('db.fields.id'))->on(config('db.tables.shifts'));
+        });
     }
 
     /**

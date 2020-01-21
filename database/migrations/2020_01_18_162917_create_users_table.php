@@ -24,6 +24,7 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->bigInteger(config('db.fields.group_id'))->unsigned()->default(config('db.values.groups.worker.id'));
+            $table->bigInteger(config('db.fields.shift_id'))->unsigned()->nullable()->unique();
             $table->foreign(config('db.fields.group_id'))->references(config('db.fields.id'))->on(config('db.tables.groups'));
         });
 
