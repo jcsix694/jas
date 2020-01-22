@@ -35,4 +35,8 @@ class Controller extends BaseController
     {
         return response()->json(config('messages.shift.error.message'), config('messages.shift.error.status'));
     }
+
+    public function application_status(){
+        return response()->json(config('messages.status.error.message'), config('messages.status.error.status'));
+    }
 }

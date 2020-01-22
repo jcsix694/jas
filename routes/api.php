@@ -39,5 +39,7 @@ Route::middleware('auth:api')->get('/shift/{id}', 'ShiftController@get');
 Route::middleware('auth:api')->post('/application', 'ApplicationController@create');
 Route::middleware('auth:api')->get('/application', 'ApplicationController@get');
 // DELETE APPLICATION
+
 Route::middleware('auth:api')->post('/application/accept', 'ApplicationController@accept');
-// DECLINE APPLICATION
+Route::middleware('auth:api')->post('/application/decline', 'ApplicationController@decline');
+Route::middleware('auth:api')->get('/application/statuses', 'ApplicationController@statuses');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Job;
 use App\Shift;
 use App\Application;
+use App\Status;
 use App\User;
 use Illuminate\Http\Request;
 
@@ -67,16 +68,35 @@ class ApplicationController extends Controller
                     }
                     else
                     {
-                        // returns created application
-                        return Application::create([
+                        $application = Application::create([
                             config('db.fields.shift_id') => $shiftId,
                             config('db.fields.worker_id') => $userId,
-                            config('db.fields.status_id') => config('db.values.statuses.pending.id')
-                        ]);
+                            config('db.fields.status_id') => config('db.values.statuses.pending.id'),
+                        ])->load('shift', 'worker', 'status');
+
+                        $application->shift->job;
+
+                        return $application;
+
                     }
                 }
 
             }
+        }
+    }
+
+    public function decline(Request $request){
+        // Get logged on user
+        $userGroupId = $request->user()->{config('db.fields.group_id')};
+
+        // If logged on users group is worker
+        if($userGroupId == config('db.values.groups.worker.id'))
+        {
+            // Return error - do not have access
+            return $this->decline_access();
+        }
+        else{
+            return $this->admin($request, config('db.values.statuses.rejected.id'));
         }
     }
 
@@ -106,24 +126,48 @@ class ApplicationController extends Controller
         $id = $request->{config('db.fields.id')};
 
         // gets the application by id where status is pending
-        $application = Application::where(config('db.fields.id'), $id)->where(config('db.fields.status_id'), config('db.values.statuses.pending.id'))->get()[0];
+        $application = Application::where(config('db.fields.id'), $id)->where(config('db.fields.status_id'), config('db.values.statuses.pending.id'))->get();
 
-        // worker id
-        $workerId = $application->{config('db.fields.worker_id')};
 
-        // switch to see if to approve or reject the application
-        switch ($action)
+        if(sizeof($application))
         {
-            case config('db.values.statuses.approved.id'):
-                $worker = User::find($workerId);
-                $worker->{config('db.fields.shift_id')} = $application->{config('db.fields.shift_id')};
-                $worker->save();
+            $application = $application[0];
 
-                Application::where(config('db.fields.worker_id'), $workerId)->delete();
+            // worker id
+            $workerId = $application->{config('db.fields.worker_id')};
 
-                return User::with(['group','shift'])->where(config('db.fields.id'), $workerId)->get();
-                break;
+            // switch to see if to approve or reject the application
+            switch ($action)
+            {
+                case config('db.values.statuses.approved.id'):
+                    $worker = User::find($workerId);
+                    $worker->{config('db.fields.shift_id')} = $application->{config('db.fields.shift_id')};
+                    $worker->save();
+
+                    Application::where(config('db.fields.worker_id'), $workerId)->delete();
+
+                    return User::with(['group','shift'])->where(config('db.fields.id'), $workerId)->get();
+                    break;
+                case config('db.values.statuses.rejected.id'):
+                        $reject = Application::find($id);
+                        $reject->{config('db.fields.status_id')} = $action;
+                        $reject->save();
+
+                        $return = Application::with('shift','status','worker')->where('id', $id)->get()[0];
+                        $return->shift->job;
+                        return $return;
+                    break;
+            }
         }
+        else{
+            return $this->application_status();
+        }
+
+    }
+
+    public function statuses()
+    {
+        return Status::all();
     }
 
     public function get(Request $request)

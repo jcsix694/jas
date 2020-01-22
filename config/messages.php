@@ -58,5 +58,11 @@ return [
             'status' => 400,
             'message' => 'You already have a shift so therefore you cannot view applications'
         ]
+    ],
+    'status' => [
+        'error' => [
+            'status' => 400,
+            'message' => 'The status of the application is not pending'
+        ]
     ]
 ];
