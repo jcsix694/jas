@@ -2,6 +2,7 @@ image: debian:jessie
 
 deploy:
   script:
+    - apt-get install sshpass
     - sshpass -V
     - export SSHPASS=$USER_PASS
     - ls
