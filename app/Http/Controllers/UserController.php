@@ -98,11 +98,16 @@ class UserController extends Controller
 
     public function get_user(Request $request)
     {
-        $id = $request->user()->{config('db.fields.id')};
-        $groupId = $request->user()->{config('db.fields.group_id')};
+        switch ($request->user()->{config('db.fields.group_id')}){
+            case config('db.values.groups.worker.id'):
+                $request->user()->shift;
+                if(!is_null($request->user()->{config('db.fields.shift_id')})) {
+                    $request->user()->shift->job;
+                }
+                break;
+        }
 
-        // return logged on user
-        return $this->get($id, $groupId);
+        return $request->user();
     }
 
     public function get_admin(Request $request, $id = null){

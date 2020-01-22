@@ -47,18 +47,17 @@ class JobController extends Controller
     public function get(Request $request, $id = null){
         // Get logged on user
         $userGroupId = $request->user()->{config('db.fields.group_id')};
-        $userShiftId = $request->user()->{config('db.fields.shift_id')};
 
         // If logged on users group is a worker
         if($userGroupId == config('db.values.groups.worker.id'))
         {
-            if(is_null($userShiftId)) {
-                // Return error - do not have access
+           // decline access if no shift else return job
+            if(is_null($request->user()->{config('db.fields.shift_id')})) {
                 return $this->decline_access();
             }
             else
             {
-                // return workers job here
+                return $request->user()->shift->job;
             }
         }
         else {

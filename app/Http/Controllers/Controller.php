@@ -28,6 +28,11 @@ class Controller extends BaseController
 
     public function no_results()
     {
-        response()->json(config('messages.results.error.message'), config('messages.results.error.status'));
+        return response()->json(config('messages.results.error.message'), config('messages.results.error.status'));
+    }
+
+    public function already_have_shift()
+    {
+        return response()->json(config('messages.shift.error.message'), config('messages.shift.error.status'));
     }
 }

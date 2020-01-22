@@ -52,5 +52,11 @@ return [
             'status' => 400,
             'message' => 'You already applied to this shift'
         ]
+    ],
+    'shift' => [
+        'error' => [
+            'status' => 400,
+            'message' => 'You already have a shift so therefore you cannot view applications'
+        ]
     ]
 ];

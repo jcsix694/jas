@@ -28,4 +28,8 @@ class Job extends Model
     {
         return $this->hasManyThrough('App\User', 'App\Shift', 'job_id', 'shift_id', 'id', 'id');
     }
+
+    public function applications(){
+        return $this->hasManyThrough('App\Application', 'App\Shift', 'job_id', 'shift_id', 'id', 'id');
+    }
 }

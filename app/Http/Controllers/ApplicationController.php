@@ -125,4 +125,56 @@ class ApplicationController extends Controller
                 break;
         }
     }
+
+    public function get(Request $request)
+    {
+        $id = $request->query("id");
+        $statusId = $request->query("status_id");
+
+        // validates filters
+        $request->validate([
+            'id' => ['exists:applications,id'],
+            'status_id' => ['exists:statuses,id']
+        ]);
+
+        // if worker then show their applications
+        if($request->user()->group_id == config('db.values.groups.worker.id')){
+
+            // Throw error if user has a shift already
+            if(!is_null($request->user()->shift_id)){
+                return $this->already_have_shift();
+            }
+            else
+            {
+                $results = Application::with('shift','status','worker')->where('worker_id', $request->user()->id);
+            }
+        }
+        else
+        {
+            $results = Application::with('shift','status','worker');
+        }
+
+        if(!is_null($id)) {
+            $results = $results->where('id', $id);
+        }
+
+        if(!is_null($statusId)) {
+            $results = $results->where('status_id', $statusId);
+        }
+
+        $results = $results->get();
+
+        if(sizeof($results) == 0)
+        {
+            return $this->no_results();
+        }
+        else
+        {
+            foreach ($results as $result){
+                $result->shift->job;
+            }
+        }
+
+        return $results;
+    }
 }

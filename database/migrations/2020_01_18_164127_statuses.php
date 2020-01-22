@@ -25,10 +25,6 @@ class Statuses extends Migration
                 config('db.fields.name') => config('db.values.statuses.pending.name')
             ),
             array(
-                config('db.fields.id') => config('db.values.statuses.approved.id'),
-                config('db.fields.name') => config('db.values.statuses.approved.name')
-            ),
-            array(
                 config('db.fields.id') => config('db.values.statuses.rejected.id'),
                 config('db.fields.name') => config('db.values.statuses.rejected.name')
             )

@@ -70,12 +70,19 @@ class ShiftController extends Controller
         // If logged on users group is a worker
         if($userGroupId == config('db.values.groups.worker.id'))
         {
-            // Return error - do not have access
-            return $this->decline_access();
+            // decline access if no shift else return shift and job
+            if(is_null($request->user()->{config('db.fields.shift_id')})) {
+                return $this->decline_access();
+            }
+            else
+            {
+                $request->user()->shift->job;
+                return $request->user()->shift;
+            }
         }
         else {
             if (is_null($id)) {
-                return Shift::all();
+                return Shift::with(['job'])->get();
             } else {
                 $shift = Shift::with(['job'])->where(config('db.fields.id'), $id)->get();
 
