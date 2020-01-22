@@ -47,4 +47,8 @@ class Controller extends BaseController
     public function max_shifts(){
         return response()->json(config('messages.max_shifts.error.message'), config('messages.max_shifts.error.status'));
     }
+
+    public function shift_belongs_user(){
+        return response()->json(config('messages.shift_belongs.error.message'), config('messages.shift_belongs.error.status'));
+    }
 }

@@ -23,74 +23,64 @@ class ApplicationController extends Controller
 
     public function create(Request $request){
         // Get logged on user
-        $userId = $request->user()->{config('db.fields.id')};
-        $userGroupId = $request->user()->{config('db.fields.group_id')};
-        $userShiftId = $request->user()->{config('db.fields.shift_id')};
 
-        // If logged on users group is admin
-        if($userGroupId == config('db.values.groups.admin.id'))
+        if($request->user()->group_id == config('db.values.groups.admin.id'))
         {
-            // Return error - do not have access
+            // if user is an admin decline access
             return $this->decline_access();
         }
         else
         {
-            if(!is_null($userShiftId))
+            if(!is_null($request->user()->shift_id))
             {
-                // Return error - already have shift
+                // if user has a shift decline application
                 return $this->decline_application();
             }
             else
             {
                 // validates if shift exists
                 $request->validate([
-                    config('db.fields.shift_id') => ['required', 'exists:'.config('db.tables.shifts').','.config('db.fields.id')],
+                    'shift_id' => ['required', 'exists:shifts,id'],
                 ]);
 
-                // shift id
-                $shiftId = $request->{config('db.fields.shift_id')};
+                $shiftId = $request->shift_id;
 
-                // Check if user applied for this shift
-                $applied = Application::where(config('db.fields.shift_id'), $shiftId)
-                    ->where(config('db.fields.worker_id'), $userId)
-                    ->count();
+                // check if shift assigned to a worker
+                $shiftHasOwner = User::where('shift_id', $shiftId)->get();
 
-                if($applied > 0)
-                {
-                    // show already applied message
-                    return $this->already_applied_application();
-                }
-                else
-                {
-                    // gets job id from shift id
-                    $jobId = Shift::where(config('db.fields.id'), $shiftId)->get()[0]->{config('db.fields.job_id')};
+                if(sizeof($shiftHasOwner) == 0){
+                    // Check if user applied for this shift
+                    $applied = Application::where('shift_id', $shiftId)
+                        ->where('worker_id', $request->user()->id)
+                        ->count();
 
-                    // gets number of shifts for job
-                    $jobNoShifts = Job::where(config('db.fields.id'), $jobId)->get()[0]->no_shifts;
+                    if($applied > 0) {
+                        // show already applied message
+                        return $this->already_applied_application();
+                    }else {
+                        $shift = Shift::with('job')->where('id', $shiftId)->get()[0];
 
-                    // gets the number of workers assigned to a job
-                    $shiftsAssigned = sizeof(Job::with('workers')->where(config('db.fields.id'), $jobId)->get()[0]->{config('db.fields.workers')});
+                        // if number of workers on a job is bigger or the same as the number of shifts for job throw error
+                        if (sizeof($shift->job->workers) >= $shift->job->no_shifts) {
+                            return $this->max_shifts();
+                        } else {
+                            // send application
+                            $application = Application::create([
+                               'shift_id' => $shiftId,
+                                'worker_id' => $request->user()->id,
+                                'status_id' => config('db.values.statuses.pending.id'),
+                            ])->load('shift', 'worker', 'status');
 
-                    // if number of workers on a job is bigger or equle to number of shifts for job throw error
-                    if($shiftsAssigned >= $jobNoShifts)
-                    {
-                        return response()->json(config('messages.max_shifts.error.message'), config('messages.max_shifts.error.status'));
-                    }
-                    else
-                    {
-                        $application = Application::create([
-                            config('db.fields.shift_id') => $shiftId,
-                            config('db.fields.worker_id') => $userId,
-                            config('db.fields.status_id') => config('db.values.statuses.pending.id'),
-                        ])->load('shift', 'worker', 'status');
+                            $application->shift->job;
 
-                        $application->shift->job;
-
-                        return $application;
-
+                            return array($application);
+                        }
                     }
                 }
-
+                else{
+                    // show message shift belongs to another worker
+                    return $this->shift_belongs_user();
+                }
             }
         }
     }

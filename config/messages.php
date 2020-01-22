@@ -70,5 +70,11 @@ return [
             'status' => 400,
             'message' => 'You do not have a job'
         ]
+    ],
+    'shift_belongs' => [
+        'error' => [
+            'status' => 400,
+            'message' => 'Shift belongs to another worker'
+        ]
     ]
 ];
