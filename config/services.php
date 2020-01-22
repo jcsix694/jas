@@ -36,7 +36,7 @@ return [
             ],
         'client' => [
             'id' => env('PASSPORT_CLIENT_ID'),
-            'secret' => env('PASSPORT_CLIENT_SECRET'),
+            'secret' => 'wlU4zck322qXPG56xiC2clZMsuIky5JIqXdi6Ojt',
         ],
     ],
 ];
