@@ -36,14 +36,8 @@ class JobController extends Controller
 
     public function get(Request $request){
         if($request->user()->group_id == config('db.values.groups.worker.id')){
-            if(is_null($request->user()->shift_id)) {
-               // if user is a worker and has no shift show message
-               return $this->no_job();
-            }
-            else{
-                // if user is a worker and has a shift show job
-                return $request->user()->shift->job;
-            }
+            // decline access
+            return $this->decline_access();
         }
         else{
             // gets id from request

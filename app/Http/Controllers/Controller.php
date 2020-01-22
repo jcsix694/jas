@@ -43,4 +43,8 @@ class Controller extends BaseController
     public function no_job(){
         return response()->json(config('messages.job.error.message'), config('messages.job.error.status'));
     }
+
+    public function max_shifts(){
+        return response()->json(config('messages.max_shifts.error.message'), config('messages.max_shifts.error.status'));
+    }
 }

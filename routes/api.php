@@ -30,6 +30,7 @@ Route::middleware('auth:api')->get('/job', 'JobController@get');
 
 Route::middleware('auth:api')->post('/shift', 'ShiftController@create');
 Route::middleware('auth:api')->get('/shift', 'ShiftController@get');
+Route::middleware('auth:api')->get('/shift/available', 'ShiftController@available');
 // UPDATE SHIFT
 
 Route::middleware('auth:api')->post('/application', 'ApplicationController@create');

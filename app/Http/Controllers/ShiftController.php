@@ -10,88 +10,115 @@ class ShiftController extends Controller
 {
     public function create(Request $request)
     {
-        // Get logged on user from token
-        $userGroupId = $request->user()->{config('db.fields.group_id')};
-
         // If logged on users group is a worker
-        if($userGroupId == config('db.values.groups.worker.id'))
+        if($request->user()->group_id == config('db.values.groups.worker.id'))
         {
-            // Return error - do not have access
+            // if logged in user is a worker decline access
             return $this->decline_access();
         }
         else
         {
             // validates request
             $request->validate([
-                config('db.fields.monday') => ['required', 'boolean'],
-                config('db.fields.tuesday') => ['required', 'boolean'],
-                config('db.fields.wednesday') => ['required', 'boolean'],
-                config('db.fields.thursday') => ['required', 'boolean'],
-                config('db.fields.friday') => ['required', 'boolean'],
-                config('db.fields.saturday') => ['required', 'boolean'],
-                config('db.fields.sunday') => ['required', 'boolean'],
-                config('db.fields.start') => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
-                config('db.fields.end') => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
-                config('db.fields.pay_per_hour') => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
-                config('db.fields.job_id') => ['required', 'exists:'.config('db.tables.jobs').','.config('db.fields.id')],
+                'monday' => ['required', 'boolean'],
+                'tuesday' => ['required', 'boolean'],
+                'wednesday' => ['required', 'boolean'],
+                'thursday' => ['required', 'boolean'],
+                'friday' => ['required', 'boolean'],
+                'saturday' => ['required', 'boolean'],
+                'sunday' => ['required', 'boolean'],
+                'start' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
+                'end' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
+                'pay_per_hour' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
+                'job_id' => ['required', 'exists:jobs,id'],
             ]);
 
-            $jobId = $request->{config('db.fields.job_id')};
+            $jobId = $request->job_id;
 
-            $jobNoShifts = Job::where(config('db.fields.id'), $jobId)->get()[0]->no_shifts;
-            $shiftsCount = Shift::where(config('db.fields.job_id'), $jobId)->count();
+            // gets total number of shifts allowed for job
+            $jobNoShifts = Job::where('id', $jobId)->get()[0]->no_shifts;
+
+            // gets current count of shifts for job
+            $shiftsCount = Shift::where('job_id', $jobId)->count();
 
             if($shiftsCount >= $jobNoShifts)
             {
-                return response()->json(config('messages.max_shifts.error.message'), config('messages.max_shifts.error.status'));
+                // if current shifts is the same as or bigger than total number of shifts allowed for job then show error
+               return $this->max_shifts();
             }
 
             // returns created shift
-            return Shift::create([
-                config('db.fields.monday') => $request->{config('db.fields.monday')},
-                config('db.fields.tuesday') => $request->{config('db.fields.tuesday')},
-                config('db.fields.wednesday') => $request->{config('db.fields.wednesday')},
-                config('db.fields.thursday') => $request->{config('db.fields.thursday')},
-                config('db.fields.friday') => $request->{config('db.fields.friday')},
-                config('db.fields.saturday') => $request->{config('db.fields.saturday')},
-                config('db.fields.sunday') => $request->{config('db.fields.sunday')},
-                config('db.fields.start') => $request->{config('db.fields.start')},
-                config('db.fields.end') => $request->{config('db.fields.end')},
-                config('db.fields.pay_per_hour') => $request->{config('db.fields.pay_per_hour')},
-                config('db.fields.job_id') => $jobId,
-            ])->load(config('db.tables.job'));
+            return array(Shift::create([
+                'monday' => $request->monday,
+                'tuesday' => $request->tuesday,
+                'wednesday' => $request->wednesday,
+                'thursday' => $request->thursday,
+                'friday' => $request->friday,
+                'saturday' => $request->saturday,
+                'sunday' => $request->sunday,
+                'start' => $request->start,
+                'end' => $request->end,
+                'pay_per_hour' => $request->pay_per_hour,
+                'job_id' => $jobId,
+            ])->load(array('job')));
         }
     }
 
-    public function get(Request $request, $id = null){
-        // Get logged on user
-        $userGroupId = $request->user()->{config('db.fields.group_id')};
-
-        // If logged on users group is a worker
-        if($userGroupId == config('db.values.groups.worker.id'))
-        {
-            // decline access if no shift else return shift and job
-            if(is_null($request->user()->{config('db.fields.shift_id')})) {
+    public function get(Request $request){
+        if($request->user()->group_id == config('db.values.groups.worker.id')){
+            // If logged on users group is a worker
+            if(is_null($request->user()->shift)){
+                // if logged on user is a worker decline access
                 return $this->decline_access();
             }
-            else
-            {
+            else{
                 $request->user()->shift->job;
                 return $request->user()->shift;
             }
         }
-        else {
-            if (is_null($id)) {
-                return Shift::with(['job'])->get();
-            } else {
-                $shift = Shift::with(['job'])->where(config('db.fields.id'), $id)->get();
+        else{
+            // gets id from request
+            $id = $request->query("id");
+            $jobId = $request->query("job_id");
 
-                if (is_null($shift)) {
-                    return $this->no_results();
-                }
+            // checks if id exists
+            $request->validate([
+                'id' => ['exists:shifts,id'],
+                'job_id' => ['exists:jobs,id'],
+            ]);
 
-                return $shift;
-            }
+            return $this->get_shift($id, $jobId);
         }
+    }
+
+    public function get_shift($id, $jobId){
+        // Get jobs with shifts
+        $results = Shift::with(['job', 'worker']);
+
+        if(!is_null($id)){
+            // id searching for a specific job add id
+            $results = $results->where('id', $id);
+        }
+
+        if(!is_null($jobId)){
+            // id searching for a specific job add id
+            $results = $results->where('job_id', $jobId);
+        }
+
+        $results = $results->get();
+
+        if(sizeof($results) == 0){
+            return $this->no_results();
+        }
+
+        return $results;
+    }
+
+    public function available(){
+        return Shift::with(['job'])
+            ->leftjoin('users', 'shifts.id', '=', 'users.shift_id')
+            ->select('shifts.*')
+            ->whereNull('users.shift_id')
+            ->get();
     }
 }
