@@ -11,6 +11,16 @@ use Illuminate\Http\Request;
 
 class ApplicationController extends Controller
 {
+    public function delete(Request $request){
+        // if user from token is an admin or a worker who has a shift decline access
+        if($request->user()->group_id == config('db.values.groups.admin.id') OR !is_null($request->user()->shift_id)){
+            return $this->decline_access();
+        }
+        else{
+
+        }
+    }
+
     public function create(Request $request){
         // Get logged on user
         $userId = $request->user()->{config('db.fields.id')};

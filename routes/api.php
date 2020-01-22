@@ -17,14 +17,13 @@ Route::post('/login', 'UserController@get_token');
 
 Route::post('/register', 'UserController@create_worker');
 
-Route::middleware('auth:api')->get('/user', 'UserController@get_user');
+Route::middleware('auth:api')->get('/user', 'UserController@user');
 
 Route::middleware('auth:api')->post('/admin','UserController@create_admin');
-Route::middleware('auth:api')->get('/admin', 'UserController@get_admin');
-Route::middleware('auth:api')->get('/admin/{id}', 'UserController@get_admin');
+Route::middleware('auth:api')->get('/admin', 'UserController@admin');
 
-Route::middleware('auth:api')->get('/worker/', 'UserController@get_worker');
-Route::middleware('auth:api')->get('/worker/{id}', 'UserController@get_worker');
+Route::middleware('auth:api')->get('/worker/', 'UserController@worker');
+Route::middleware('auth:api')->get('/worker/{id}', 'UserController@worker');
 
 Route::middleware('auth:api')->post('/job', 'JobController@create');
 Route::middleware('auth:api')->get('/job', 'JobController@get');
@@ -38,7 +37,7 @@ Route::middleware('auth:api')->get('/shift/{id}', 'ShiftController@get');
 
 Route::middleware('auth:api')->post('/application', 'ApplicationController@create');
 Route::middleware('auth:api')->get('/application', 'ApplicationController@get');
-// DELETE APPLICATION
+Route::middleware('auth:api')->delete('/application', 'ApplicationController@delete');
 
 Route::middleware('auth:api')->post('/application/accept', 'ApplicationController@accept');
 Route::middleware('auth:api')->post('/application/decline', 'ApplicationController@decline');
