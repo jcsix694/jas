@@ -2,7 +2,8 @@ image: debian:stretch
 
 deploy:
   script:
-    - apt-get install sshpass
+    - apt-get update -y
+    - apt-get install -y sshpass
     - sshpass -V
     - export SSHPASS=$USER_PASS
     - ls
