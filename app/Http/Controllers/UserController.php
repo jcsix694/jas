@@ -158,13 +158,18 @@ class UserController extends Controller
     }
 
     public function get_worker($id){
-        $results = $this->get_user(config('db.values.groups.worker.id'), $id, array('shift','applications'))->get();
+        $results = $this->get_user(config('db.values.groups.worker.id'), $id, array('shift','applications','status'))->get();
 
         if(sizeof($results) == 0){
             return $this->no_results();
         }
 
         foreach ($results as $result) {
+            foreach ($result->applications as $application){
+                $application->status;
+                $application->shift->job;
+            }
+
             if(!is_null($result->shift)) {
                 $result->shift->job;
             }

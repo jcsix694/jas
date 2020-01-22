@@ -26,7 +26,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token', 'email_verified_at', 'group_id', 'created_at', 'updated_at', 'shift_id', 'laravel_through_key'
+        'password', 'remember_token', 'email_verified_at', 'group_id', 'created_at', 'updated_at', 'shift_id', 'status', 'laravel_through_key'
     ];
 
     /**
@@ -49,5 +49,9 @@ class User extends Authenticatable
 
     public function applications(){
         return $this->hasMany('App\Application', 'worker_id');
+    }
+
+    public function status(){
+        return $this->hasManyThrough('App\Status', 'App\Application', 'status_id', 'id', 'id', 'id');
     }
 }

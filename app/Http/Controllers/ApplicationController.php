@@ -148,7 +148,7 @@ class ApplicationController extends Controller
 
                     Application::where('worker_id', $workerId)->delete();
 
-                    $user = User::with(['group','shift'])->where('id', $workerId)->get();
+                    $user = User::with(['group','shift','applications'])->where('id', $workerId)->get();
                     $user[0]->shift->job;
 
                     return $user;
