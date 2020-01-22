@@ -53,7 +53,7 @@ class UserController extends Controller
     public function create_worker(Request $request)
     {
         // returns created worker
-        return $this->create($request, config('db.values.groups.worker.id'));
+        return $this->create($request, config('db.values.groups.worker.id'), array('shift', 'applications'));
     }
 
     public function create_admin(Request $request)
@@ -74,16 +74,18 @@ class UserController extends Controller
         }
     }
 
-    public function create($request, $groupId){
+    public function create($request, $groupId, $relations = array()){
+        array_push($relations, 'group');
+
         $this->validate_user($request);
 
         // returns created user
-        return User::create([
+        return array(User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'group_id' => $groupId,
-        ])->load('group');
+        ])->load($relations));
     }
 
     public function validate_user($request)
