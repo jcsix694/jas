@@ -95,11 +95,8 @@ class ApplicationController extends Controller
     }
 
     public function decline(Request $request){
-        // Get logged on user
-        $userGroupId = $request->user()->{config('db.fields.group_id')};
-
         // If logged on users group is worker
-        if($userGroupId == config('db.values.groups.worker.id'))
+        if($request->user()->group_id == config('db.values.groups.worker.id'))
         {
             // Return error - do not have access
             return $this->decline_access();
@@ -110,11 +107,8 @@ class ApplicationController extends Controller
     }
 
     public function accept(Request $request){
-        // Get logged on user
-        $userGroupId = $request->user()->{config('db.fields.group_id')};
-
         // If logged on users group is worker
-        if($userGroupId == config('db.values.groups.worker.id'))
+        if($request->user()->group_id == config('db.values.groups.worker.id'))
         {
             // Return error - do not have access
             return $this->decline_access();
@@ -128,42 +122,44 @@ class ApplicationController extends Controller
     {
         // validates if shift exists
         $request->validate([
-            config('db.fields.id') => ['required', 'exists:'.config('db.tables.applications').','.config('db.fields.id')],
+            'id' => ['required', 'exists:applications,id'],
         ]);
 
         // gets the application id
-        $id = $request->{config('db.fields.id')};
+        $id = $request->id;
 
         // gets the application by id where status is pending
-        $application = Application::where(config('db.fields.id'), $id)->where(config('db.fields.status_id'), config('db.values.statuses.pending.id'))->get();
+        $application = Application::where('id', $id)->where('status_id', config('db.values.statuses.pending.id'))->get();
 
-
-        if(sizeof($application))
+        if(sizeof($application) > 0)
         {
             $application = $application[0];
 
             // worker id
-            $workerId = $application->{config('db.fields.worker_id')};
+            $workerId = $application->worker_id;
 
             // switch to see if to approve or reject the application
             switch ($action)
             {
                 case config('db.values.statuses.approved.id'):
                     $worker = User::find($workerId);
-                    $worker->{config('db.fields.shift_id')} = $application->{config('db.fields.shift_id')};
+                    $worker->shift_id = $application->shift_id;
                     $worker->save();
 
-                    Application::where(config('db.fields.worker_id'), $workerId)->delete();
+                    Application::where('worker_id', $workerId)->delete();
 
-                    return User::with(['group','shift'])->where(config('db.fields.id'), $workerId)->get();
+                    $user = User::with(['group','shift'])->where('id', $workerId)->get();
+                    $user[0]->shift->job;
+
+                    return $user;
                     break;
                 case config('db.values.statuses.rejected.id'):
                         $reject = Application::find($id);
-                        $reject->{config('db.fields.status_id')} = $action;
+                        $reject->status_id = $action;
                         $reject->save();
 
-                        $return = Application::with('shift','status','worker')->where('id', $id)->get()[0];
-                        $return->shift->job;
+                        $return = Application::with('shift','status','worker')->where('id', $id)->get();
+                        $return[0]->shift->job;
                         return $return;
                     break;
             }
