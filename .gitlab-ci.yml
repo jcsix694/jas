@@ -1,0 +1,9 @@
+deploy:
+  script:
+    - sshpass -V
+    - export SSHPASS=$USER_PASS
+    - ls
+    - sshpass -e scp -o stricthostkeychecking=no -r * git-deploy@178.62.106.103:/var/www/html/
+    - sshpass -e ssh -o StrictHostKeyChecking=no git-deploy@178.62.106.103 "cd /var/www/html/ && composer install; bash -l"
+  only:
+    - master
