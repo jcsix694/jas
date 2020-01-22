@@ -16,7 +16,7 @@ class UserController extends Controller
 
         // if data try below to login
         try {
-            $response = $client->request('POST', config('url.base').config('services.passport.endpoint.token'), [
+            $response = $client->request('POST', env('APP_URL') . config('services.passport.endpoint.token'), [
                 'form_params' => [
                     'grant_type' => 'password',
                     'client_id' => config('services.passport.client.id'),
