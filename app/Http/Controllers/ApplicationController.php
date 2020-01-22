@@ -17,72 +17,81 @@ class ApplicationController extends Controller
             return $this->decline_access();
         }
         else{
+            // validates if shift exists
+            $request->validate([
+                'id' => ['required', 'exists:applications,id'],
+            ]);
 
+            $isUsers = Application::where('id', $request->id)->where('worker_id', $request->user()->id)->count();
+
+            if($isUsers == 0){
+                // throw error no results
+                $this->no_results();
+            }
+
+            Application::where('id', $request->id)->delete();
+
+            return response()->json('deleted', 200);
         }
     }
 
     public function create(Request $request){
         // Get logged on user
-
         if($request->user()->group_id == config('db.values.groups.admin.id'))
         {
             // if user is an admin decline access
             return $this->decline_access();
         }
-        else
+
+        if(!is_null($request->user()->shift_id))
         {
-            if(!is_null($request->user()->shift_id))
-            {
-                // if user has a shift decline application
-                return $this->decline_application();
-            }
-            else
-            {
-                // validates if shift exists
-                $request->validate([
-                    'shift_id' => ['required', 'exists:shifts,id'],
-                ]);
+            // if user has a shift decline application
+            return $this->decline_application();
+        }
 
-                $shiftId = $request->shift_id;
+            // validates if shift exists
+            $request->validate([
+                'shift_id' => ['required', 'exists:shifts,id'],
+            ]);
 
-                // check if shift assigned to a worker
-                $shiftHasOwner = User::where('shift_id', $shiftId)->get();
+            $shiftId = $request->shift_id;
 
-                if(sizeof($shiftHasOwner) == 0){
-                    // Check if user applied for this shift
-                    $applied = Application::where('shift_id', $shiftId)
-                        ->where('worker_id', $request->user()->id)
-                        ->count();
+            // check if shift assigned to a worker
+            $shiftHasOwner = User::where('shift_id', $shiftId)->get();
 
-                    if($applied > 0) {
-                        // show already applied message
-                        return $this->already_applied_application();
-                    }else {
-                        $shift = Shift::with('job')->where('id', $shiftId)->get()[0];
+            if(sizeof($shiftHasOwner) == 0){
+                // Check if user applied for this shift
+                $applied = Application::where('shift_id', $shiftId)
+                    ->where('worker_id', $request->user()->id)
+                    ->count();
 
-                        // if number of workers on a job is bigger or the same as the number of shifts for job throw error
-                        if (sizeof($shift->job->workers) >= $shift->job->no_shifts) {
-                            return $this->max_shifts();
-                        } else {
-                            // send application
-                            $application = Application::create([
-                               'shift_id' => $shiftId,
-                                'worker_id' => $request->user()->id,
-                                'status_id' => config('db.values.statuses.pending.id'),
-                            ])->load('shift', 'worker', 'status');
+                if($applied > 0) {
+                    // show already applied message
+                    return $this->already_applied_application();
+                }else {
+                    $shift = Shift::with('job')->where('id', $shiftId)->get()[0];
 
-                            $application->shift->job;
+                    // if number of workers on a job is bigger or the same as the number of shifts for job throw error
+                    if (sizeof($shift->job->workers) >= $shift->job->no_shifts) {
+                        return $this->max_shifts();
+                    } else {
+                        // send application
+                        $application = Application::create([
+                            'shift_id' => $shiftId,
+                            'worker_id' => $request->user()->id,
+                            'status_id' => config('db.values.statuses.pending.id'),
+                        ])->load('shift', 'worker', 'status');
 
-                            return array($application);
-                        }
+                        $application->shift->job;
+
+                        return array($application);
                     }
                 }
-                else{
-                    // show message shift belongs to another worker
-                    return $this->shift_belongs_user();
-                }
             }
-        }
+
+                // show message shift belongs to another worker
+                return $this->shift_belongs_user();
+
     }
 
     public function decline(Request $request){
