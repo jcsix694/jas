@@ -64,5 +64,11 @@ return [
             'status' => 400,
             'message' => 'The status of the application is not pending'
         ]
+    ],
+    'job' => [
+        'error' => [
+            'status' => 400,
+            'message' => 'You do not have a job'
+        ]
     ]
 ];

@@ -22,17 +22,14 @@ Route::middleware('auth:api')->get('/user', 'UserController@user');
 Route::middleware('auth:api')->post('/admin','UserController@create_admin');
 Route::middleware('auth:api')->get('/admin', 'UserController@admin');
 
-Route::middleware('auth:api')->get('/worker/', 'UserController@worker');
-Route::middleware('auth:api')->get('/worker/{id}', 'UserController@worker');
+Route::middleware('auth:api')->get('/worker', 'UserController@worker');
 
 Route::middleware('auth:api')->post('/job', 'JobController@create');
 Route::middleware('auth:api')->get('/job', 'JobController@get');
-Route::middleware('auth:api')->get('/job/{id}', 'JobController@get');
 // UPDATE JOB
 
 Route::middleware('auth:api')->post('/shift', 'ShiftController@create');
 Route::middleware('auth:api')->get('/shift', 'ShiftController@get');
-Route::middleware('auth:api')->get('/shift/{id}', 'ShiftController@get');
 // UPDATE SHIFT
 
 Route::middleware('auth:api')->post('/application', 'ApplicationController@create');

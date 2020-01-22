@@ -10,68 +10,69 @@ class JobController extends Controller
 {
     public function create(Request $request)
     {
-        // Get logged on user
-        $userId = $request->user()->{config('db.fields.id')};
-        $userGroupId = $request->user()->{config('db.fields.group_id')};
-
-        // If logged on users group is a worker
-        if($userGroupId == config('db.values.groups.worker.id'))
+        if($request->user()->group_id == config('db.values.groups.worker.id'))
         {
-            // Return error - do not have access
+            // if logged on user is a worker decline access
             return $this->decline_access();
         }
         else
         {
-            $this->validate_job($request);
+            // validates request
+            $request->validate([
+                'name' => ['required', 'string', 'max:100', 'unique:jobs'],
+                'description' => ['required', 'string', 'max:255'],
+                'no_shifts' => ['required', 'integer', 'min:1', 'max:12']
+            ]);
 
             // returns created job
-            return Job::create([
-                config('db.fields.name') => $request->{config('db.fields.name')},
-                config('db.fields.description') => $request->{config('db.fields.description')},
-                config('db.fields.no_shifts') => $request->{config('db.fields.no_shifts')},
-                config('db.fields.admin_id') => $userId,
-            ])->load(config('db.tables.admin'));
+            return array(Job::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'no_shifts' => $request->no_shifts,
+                'admin_id' => $request->user()->id,
+            ])->load(array('admin', 'shifts')));
         }
     }
 
-    public function validate_job($request)
-    {
-        // validates request
-        $request->validate([
-            config('db.fields.name') => ['required', 'string', 'max:100'],
-            config('db.fields.description') => ['required', 'string', 'max:255'],
-            config('db.fields.no_shifts') => ['required', 'integer', 'min:1', 'max:12']
-        ]);
-    }
-
-    public function get(Request $request, $id = null){
-        // Get logged on user
-        $userGroupId = $request->user()->{config('db.fields.group_id')};
-
-        // If logged on users group is a worker
-        if($userGroupId == config('db.values.groups.worker.id'))
-        {
-           // decline access if no shift else return job
-            if(is_null($request->user()->{config('db.fields.shift_id')})) {
-                return $this->decline_access();
+    public function get(Request $request){
+        if($request->user()->group_id == config('db.values.groups.worker.id')){
+            if(is_null($request->user()->shift_id)) {
+               // if user is a worker and has no shift show message
+               return $this->no_job();
             }
-            else
-            {
+            else{
+                // if user is a worker and has a shift show job
                 return $request->user()->shift->job;
             }
         }
-        else {
-            if (is_null($id)) {
-                return Job::all();
-            } else {
-                $job = Job::where(config('db.fields.id'), $id)->get();
+        else{
+            // gets id from request
+            $id = $request->query("id");
 
-                if (is_null($job)) {
-                    return $this->no_results();
-                }
+            // checks if id exists
+            $request->validate([
+                'id' => ['exists:jobs,id'],
+            ]);
 
-                return $job;
-            }
+            return $this->get_job($id);
         }
+    }
+
+    public function get_job($id){
+        // Get jobs with shifts
+        $results = Job::with(['shifts', 'admin']);
+
+        if(!is_null($id)){
+            // id searching for a specific job add id
+            $results = $results->where('id', $id);
+        }
+
+        $results = $results->get();
+
+        if(sizeof($results) == 0){
+            return $this->no_results();
+        }
+
+        return $results;
     }
 }

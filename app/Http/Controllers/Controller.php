@@ -39,4 +39,8 @@ class Controller extends BaseController
     public function application_status(){
         return response()->json(config('messages.status.error.message'), config('messages.status.error.status'));
     }
+
+    public function no_job(){
+        return response()->json(config('messages.job.error.message'), config('messages.job.error.status'));
+    }
 }
