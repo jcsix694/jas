@@ -27,11 +27,12 @@ class ShiftController extends Controller
                 'friday' => ['required', 'boolean'],
                 'saturday' => ['required', 'boolean'],
                 'sunday' => ['required', 'boolean'],
-                'start' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
-                'end' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
+                'start' => ['required', 'lt:end', 'digits_between:1,2', 'max:23'],
+                'end' => ['required', 'gt:start', 'digits_between:1,2', 'max:23'],
                 'pay_per_hour' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
                 'job_id' => ['required', 'exists:jobs,id'],
             ]);
+
 
             $jobId = $request->job_id;
 
