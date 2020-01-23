@@ -1,78 +1,70 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+# JAS
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+JAS (Job Application System) is an API which manages job applications for a company. Admins have the ability to manage jobs, shifts and applications whilst workers can view available shifts and apply for new shifts.
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# Usage
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+A default admin is configured with the following details:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+> username: admin@mail.com
+> password: password
 
-## Learning Laravel
+Use these credentials to login using the login endpoing to retrieve the Bearer Token.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+> POST /api/login
+> 
+> {
+  "token_type": "Bearer",
+  "expires_in": 31622400,
+  "access_token": "",
+  "refresh_token": ""
+}
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Once logged in new admins can be created with the following endpoint:
 
-## Laravel Sponsors
+> POST /api/admin
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Alternatively, register as a worker with the following endpoint:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-- [Appoly](https://www.appoly.co.uk)
-- [OP.GG](https://op.gg)
+> POST /api/register
 
-## Contributing
+Then use the login endpoint to retrieve the Bearer Token.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Endpoints
 
-## Code of Conduct
+|Method|Endpoint|Description|Query Filters  |
+|--|--|--|--|
+| POST |api/login|Returns Bearer Token to be used with API Calls  |  |
+| POST |api/register|Register as a worker  |  |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Admin
 
-## Security Vulnerabilities
+|Method|Endpoint|Description|Query Filters  |
+|--|--|--|--|
+| POST |api/admin  |Cretes an admin  |  |
+| GET|api/admin  |Gets a list of admins  | id |
+| GET |api/worker|Gets a list of workes| id |
+| GET|api/user|Gets user  |  |
+| POST |api/job|Cretes a job|  |
+| GET|api/job|Gets a list of jobs  | id |
+| POST |api/shift|Cretes a shift of a job |  |
+| GET|api/shift  |Gets a list of shifts  | id, job_id |
+| GET|api/shift/available|Gets a list of available shifts  |id, job_id  |
+| GET|api/application/statuses  |Gets a list of statuses  |  |
+| POST |api/application/accept|Accepts an application  |  |
+| POST |api/application/decline|Declines an application  |  |
+| GET|api/application|Gets a list of applications  |is, status_id  |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+## Workers
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+|Method|Endpoint|Description|Query Filters  |
+|--|--|--|--|
+| GET|api/user|Gets user  |  |
+| GET|api/shift  |Gets shift assigned to worker  |  |
+| GET|api/shift/available|Gets a list of available shifts  |id, job_id  |
+| GET|api/application/statuses  |Gets a list of statuses  |  |
+| POST |api/application|Creates an application for a shift  |  |
+| DELETE|api/application|Deletes an application  |  |
+| GET|api/application|Gets a list of applications created by the worker  |is, status_id  |
