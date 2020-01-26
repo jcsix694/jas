@@ -5,6 +5,10 @@ JAS (Job Application System) is an API which manages job applications for a comp
 
 # Usage
 
+Pleases send all requests with the following headers:
+
+> accept: application/json
+
 A default admin is configured with the following details:
 
 > username: admin@mail.com
